@@ -1,0 +1,36 @@
+---
+- name: Create Users and Groups
+  hosts: all
+  become: yes
+
+  vars:
+    users:
+      - username: john
+        groups: sudo
+        ssh_key: "ssh public-key"
+
+      - username: jane
+        groups: sudo
+        ssh_key: "ssh public-key"
+
+  tasks:
+    - name: Create groups
+      group:
+        name: "{{ item.groups }}"
+      loop: "{{ users }}"
+
+    - name: Create users
+      user:
+        name: "{{ item.username }}"
+        groups: "{{ item.groups }}"
+        state: present
+        create_home: yes
+        shell: /bin/bash
+      loop: "{{ users }}"
+
+    - name: Add SSH keys for users
+      authorized_key:
+        user: "{{ item.username }}"
+        key: "{{ item.ssh_key }}"
+        state: present
+      loop: "{{ users }}"

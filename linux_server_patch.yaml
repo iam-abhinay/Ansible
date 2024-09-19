@@ -1,0 +1,17 @@
+---
+- name: Perform patch management on Linux servers
+  hosts: all
+  become: true
+  tasks:
+    - name: Update package list
+      apt:
+        update_cache: true
+
+    - name: Upgrade all packages to the latest version
+      apt:
+        upgrade: dist
+
+    - name: Reboot the server if a kernel update was installed
+      reboot:
+        reboot_timeout: 3600
+        test_command: uptime

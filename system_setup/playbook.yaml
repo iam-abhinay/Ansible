@@ -1,0 +1,29 @@
+---
+- name: Basic System Setup
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Update and upgrade the system (Debian/Ubuntu)
+      apt:
+        update_cache: yes     #updates package cache to get latest package info
+        upgrade: dist         #upgrades installed packages to latest version including handling ditribution upgrades
+
+    - name: Install essential packages
+      apt:
+        name:
+          - vim
+          - curl
+          - git
+        state: present
+
+    - name: Ensure NTP (Network Time Protocol) is installed  #sync sytem clock with network time servers
+      apt:
+        name: ntp
+        state: present
+
+    - name: Start and enable NTP service
+      systemd:
+        name: ntp
+        enabled: yes
+        state: started
