@@ -1,0 +1,17 @@
+---
+- hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: list of s3 buckets
+      amazon.aws.s3_bucket_info:
+      register: result
+
+    - debug:
+        var: result
+      
+    - name: bucket versioning
+      amazon.aws.s3_bucket:
+        name: "{{ item.name }}"
+        versioning: yes
+      loop: "{{ result.buckets }}"
