@@ -1,0 +1,67 @@
+---
+- hosts: webservers
+  serial: 2  # Update two servers at a time
+  become: true  # Use sudo to run commands as root
+  tasks:
+
+    - name: Ensure the system is up to date
+      apt:
+        name: '*'
+        state: latest
+
+    - name: Install httpd package
+      apt:
+        name: httpd
+        state: latest
+      register: httpd_install  # Register the result for conditional tasks
+
+    - name: Start httpd service
+      service:
+        name: httpd
+        state: started
+      when: httpd_install.changed  # Only start if httpd was installed or updated
+
+    - name: Enable httpd service to start on boot
+      service:
+        name: httpd
+        enabled: true
+
+    - name: Create a simple HTML page
+      copy:
+        content: "<h1>Welcome to the Apache Web Server!</h1>"
+        dest: /var/www/html/index.html
+      notify:
+        - Restart httpd  # Notify handler to restart httpd if the file changes
+
+    - name: Perform a health check
+      uri:
+        url: http://localhost
+        method: GET
+        return_content: yes
+      register: health_check
+
+    - name: Fail if health check fails
+      fail:
+        msg: "Health check failed: {{ health_check.content }}"
+      when: health_check.status != 200
+
+  handlers:
+    - name: Restart httpd
+      service:
+        name: httpd
+        state: restarted
+
+
+
+# Ex: If we have five web servers and set serial: 2, the playbook would proceed as follows:
+#     First, it updates and restarts webserver1 and webserver2.
+#     Once those two are completed and healthy, it moves on to webserver3 and webserver4
+#     Finally, it updates webserver5
+
+#     This staggered approach ensures that there is always a portion of the servers running and available to handle requests, maintaining service reliability throughout the deployment process.
+
+
+
+
+
+

@@ -1,0 +1,34 @@
+---
+- name: Update Web Servers and Restart HAProxy Load Balancer
+  hosts: webservers
+  become: true
+  tasks:
+    - name: Update and upgrade the system (Debian/Ubuntu)
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Install essential packages
+      apt:
+        name:
+          - vim
+          - curl
+          - git
+        state: present
+
+    - name: Deploy application code
+      copy:
+        src: /path/to/local/app/
+        dest: /path/to/remote/app/
+        owner: www-data
+        group: www-data
+        mode: '0755'
+      notify:
+        - Restart HAProxy
+
+  handlers:
+    - name: Restart HAProxy
+      service:
+        name: haproxy
+        state: restarted
+      delegate_to: lbserver

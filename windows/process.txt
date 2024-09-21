@@ -1,0 +1,53 @@
+Control Node:
+
+Ansible installed
+pywinrm installed
+
+Managed node:
+
+Launched an EC2 instance using Microsoft Windows server 2022 Base
+
+Configured Security Group:
+RDP (TCP, port 3389) from your IP address (or anywhere if you’re testing, but be cautious with this for security reasons).
+HTTP (TCP, port 80) if you plan to host a website.
+
+Installed Microsoft Remote Desktop
+
+Username: Usually, this is Administrator.
+Password: To get the password, go back to the EC2 console, right-click your instance, and select Get Windows Password. Upload the key pair you downloaded earlier to decrypt the password.
+
+Open PowerShell as Administrator
+
+To enable winRM:
+winrm quickconfig -force
+winrm set winrm/config/service '@{AllowUnencrypted="true"}'
+winrm set winrm/config/service/auth '@{Basic="true"}'
+Set-Item WSMan:\localhost\Service\AllowUnencrypted -Value $true
+Enable-PSRemoting -Force
+
+Note:This configures WinRM to accept unencrypted traffic, which is not recommended for production environments but is acceptable for testing.
+
+Configure the Windows Firewall:
+New-NetFirewallRule -Name "WinRM HTTP" -DisplayName "WinRM HTTP" -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 5985
+
+Security Group: Ensure the security group associated with your EC2 instance allows inbound traffic on port 5985 (for WinRM)
+
+On my local Machine:
+created a website folder and placed required files(index.html,about.html,style.css) in it and gave the path of the directory as source in IIS root directory.
+
+Issue-1:
+objc[67151]: +[__NSCFConstantString initialize] may have been in progress in another thread when fork() was called.
+objc[67151]: +[__NSCFConstantString initialize] may have been in progress in another thread when fork() was called. We cannot safely call it or ignore it in the fork() child process. Crashing instead. Set a breakpoint on objc_initializeAfterForkError to debug.
+
+Solution:
+export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES -->This environment variable disables the fork safety checks in Objective-C
+ansible-playbook -i inventory.ini windows-iis-setup.yml --forks 1
+
+Issue-2:
+atal: [54.91.102.243]: UNREACHABLE! => {"changed": false, "msg": "basic: the specified credentials were rejected by the server", "unreachable": true}
+
+Solution:
+Opened the inventory.ini file and re-entered the credentials and it worked
+
+Finally,able to see my static content on the windows instance IP.
+

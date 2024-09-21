@@ -1,0 +1,42 @@
+---
+- name: Nginx Load Balancer Setup
+  hosts: loadbalancer
+  become: yes
+
+  vars:
+    upstream_servers:
+      - "server <BACKEND_INSTANCE1_PRIVATE_IP>;"
+      - "server <BACKEND_INSTANCE2_PRIVATE_IP>;"
+    lb_domain: "loadbalancer.example.com"
+
+  tasks:
+    - name: Install Nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Create Nginx configuration
+      template:
+        src: templates/nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Start and enable Nginx
+      systemd:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Test Nginx configuration
+      command: nginx -t
+      notify:
+        - Restart Nginx
+
+  handlers:
+    - name: Restart Nginx
+      systemd:
+        name: nginx
+        state: restarted

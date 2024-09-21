@@ -1,0 +1,28 @@
+---
+- name: Setup IIS on Windows Server
+  hosts: windows
+  tasks:
+  
+    - name: Install IIS (Web-Server role)
+      win_feature:
+        name: Web-Server
+        state: present
+        include_management_tools: yes
+
+    - name: Copy static website files to IIS root directory
+      win_copy:
+        src: /Users/padigehr/ansible/windows/website/
+        dest: C:\inetpub\wwwroot\
+      
+    - name: Ensure IIS is started and enabled on boot
+      win_service:
+        name: W3SVC
+        start_mode: auto
+        state: started
+
+    - name: Install Windows Updates
+      win_updates:
+        category_names:
+          - SecurityUpdates
+        reboot: yes
+
