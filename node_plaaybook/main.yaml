@@ -1,0 +1,47 @@
+---
+- hosts: app_servers
+  become: yes
+  vars:
+    repo_url: "https://github.com/iam-abhinay/Ansible.git"
+    app_directory: "/nodejs_app/"
+
+  tasks:
+    - name: Update the packages
+      apt:
+        update_cache: yes
+    - name: Ensure Git is installed
+      apt:
+        name: git
+        state: present
+
+    - name: Clone the application repository
+      git:
+        repo: "{{ repo_url }}"
+        dest: "{{ app_directory }}"
+        update: yes
+
+    - name: Ensure Node.js and npm are installed
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - nodejs
+        - npm
+
+    - name: Install application dependencies
+      command: npm install
+      args:
+        chdir: "{{ app_directory }}"
+
+    - name: Start the application
+      command: npm start
+      args:
+        chdir: "{{ app_directory }}"
+      async: 10
+      poll: 0
+
+    - name: Wait for the application to start
+      wait_for:
+        port: 3000
+        delay: 5
+        timeout: 60
