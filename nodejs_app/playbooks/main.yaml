@@ -3,7 +3,7 @@
   become: yes
   vars:
     repo_url: "https://github.com/iam-abhinay/Ansible.git"
-    app_directory: "nodejs_app/"
+    app_directory: "/nodejs_app"
 
   tasks:
     - name: Update the packages
